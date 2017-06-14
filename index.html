@@ -42,7 +42,7 @@
 		font-size: 14px;
 		color: #fff;
 		list-style: none;
-		padding: 2px 10px;
+		padding: 2px 0;
 		cursor: pointer; 
 		text-align: center;
 		margin: 0 10px;
@@ -161,7 +161,7 @@
         endX = touch.pageX - startX;
         endY = touch.pageY - startY;
 
-        moveXpersent = activeIndex*li_width + (-(endX / fullWidth).toFixed(2))*li_width;
+        moveXpersent = line_translate + (-(endX / fullWidth).toFixed(2))*li_width;
 
         if(swiper.activeIndex === 4 && endX < 0)return;
         if(swiper.activeIndex === 0 && endX > 0)return;
