@@ -51,19 +51,27 @@
 	.moveTable{
 		width: 85px;
 		height: 2px;
-		background: red;
+		-webkit-border-radius: 1px;
+		-moz-border-radius: 1px;
+		border-radius: 1px;
+		background:red;
 		position: absolute;
 		bottom: 0;
 		left: 0;
+		-webkit-transition: all 0.1s;
+		-moz-transition: all 0.1s;
 		transition: all 0.1s;
+		-webkit-transform: translateZ(0);
+		-moz-transform: translateZ(0);
+		transform: translateZ(0);
 	}
 </style>
 
 <body>
 	<ul class="ul-moveTable">
-		<li>首页</li>
+		<li class="active">首页</li>
 		<li>第一页</li>
-		<li class="active">第二页</li>
+		<li>第二页</li>
 		<li>第三页</li>
 		<li>第四页</li>
 
@@ -85,39 +93,8 @@
 <script src="http://www.daiwei.org/components/toast/js/toast.js"></script>
 <script src="js/swiper.js"></script>
 <script>
-	var activeIndex = 0;
-
 	var $this = $('.ul-moveTable');
-
-
-	//判断li中有active 的索引 并获取其left的值
-	for(var i  = 0; i<$this.children().length;i++){
-		if ($this.children().eq(i).hasClass('active')) {
-			activeIndex = i;
-			li_left = $this.children().eq(i).position().left;
-			li_width = $this.children().eq(i).outerWidth();
-		}
-	}
-
-	//li的margin 宽
-	var li_width = $this.children().eq(activeIndex).outerWidth();
-	
-	//线的left位置
-	var li_left = $this.children().eq(activeIndex).position().left;
-
-	//li的margin left
-	var li_marginLeft = Number($this.children().eq(activeIndex).css('margin-left').replace(/[^0-9]+/g, ''));
-
-	var line_translate = li_left + li_marginLeft;
-
-	$('.moveTable').css({
-    	transform:'translate('+line_translate+'px,0)'
-    });
-
-	// alert(li_width);
-	// alert(li_left);
-	// alert(line_translate);
-
+	var $moveTable = $('.moveTable');
 	var startX = 0;   //起始位置X
 	var startY = 0;	  //起始位置Y
 	var endX = 0;     //结束的位置X
@@ -128,56 +105,89 @@
 	var fullWidth = document.body.clientWidth;
 
 	var mySwiper = new Swiper('.swiper-container', {
-		autoplay: 5000,//可选选项，自动滑动
+		autoplay: 5000,//可选选项，自动滑动,
+		initialSlide:2,
+
+		onInit: function(swiper) {
+			var activeIndex = swiper.activeIndex;
+			//判断li中有active 的索引 并获取其left的值
+			for(var i  = 0; i<$this.children().length;i++){
+				if ($this.children().eq(i).hasClass('active')) {
+					activeIndex = i;
+					li_left = $this.children().eq(i).position().left;
+					li_width = $this.children().eq(i).outerWidth();
+				}
+			}
+
+			changeLeft(swiper);
+		},
+
 		onTouchStart: function(swiper,event){
 	        var touch = event.touches[0];
 	        startY = touch.pageY;
 	        startX = touch.pageX;
-	        showMessage(startX+" === "+startY);
 	    },
 
 	    onTouchMove: function(swiper,event){
 			var touch = event.touches[0];
-	        var activeIndex = swiper.activeIndex;
-	        var li_width = $this.children().eq(activeIndex).outerWidth();
-	        //线的left位置
-			var li_left = $this.children().eq(activeIndex).position().left;
 
-			//li的margin left
-			var li_marginLeft = Number($this.children().eq(activeIndex).css('margin-left').replace(/[^0-9]+/g, ''));
+			touchuMoveLeft(touch,swiper);
+	       
 
-			var line_translate = li_left + li_marginLeft;
-	        endX = touch.pageX - startX;
-	        endY = touch.pageY - startY;
-
-	        moveXpersent = activeIndex*li_width+(-(endX / fullWidth).toFixed(2))*li_width;
-
-	        if(swiper.activeIndex === 4 && endX < 0)return;
-	        $('.moveTable').css({
-	        	transform:'translate('+line_translate+'px,0)',
-	        	width:li_width,
-	        });
+	        // showMessage(moveXpersent +'  =====   '+swiper.activeIndex);
 	    },
 
 	    onSlideChangeStart: function(swiper,event){
-	    	var left = swiper.activeIndex==0? 0 : $('.ul-moveTable li').eq(mySwiper.activeIndex).position().left+65;
-	    	var activeIndex = swiper.activeIndex;
-	        var li_width = $this.children().eq(activeIndex).outerWidth();
-	        //线的left位置
-			var li_left = $this.children().eq(activeIndex).position().left;
+	    	changeLeft(swiper);
+	    },
 
-			//li的margin left
-			var li_marginLeft = Number($this.children().eq(activeIndex).css('margin-left').replace(/[^0-9]+/g, ''));
-
-			var line_translate = li_left + li_marginLeft;
-
-	    	$('.moveTable').css({
-	        	transform:'translate('+line_translate+'px,0)'
-	        });
-
-	        showMessage(left +'  =====   '+swiper.activeIndex);
-	    }
+	    onTransitionEnd: function(swiper){
+	    	changeLeft(swiper);
+        }	
 	});
+
+	function touchuMoveLeft(touch,swiper) {
+		var touch = touch || '';
+		var swiper = swiper || '';
+		var activeIndex = swiper.activeIndex;
+        var li_width = $this.children().eq(activeIndex).outerWidth();
+        //线的left位置
+		var li_left = $this.children().eq(activeIndex).position().left;
+
+		//li的margin left
+		var li_marginLeft = Number($this.children().eq(activeIndex).css('margin-left').replace(/[^0-9]+/g, ''));
+
+		var line_translate = li_left + li_marginLeft;
+        endX = touch.pageX - startX;
+        endY = touch.pageY - startY;
+
+        moveXpersent = activeIndex*li_width + (-(endX / fullWidth).toFixed(2))*li_width;
+
+        if(swiper.activeIndex === 4 && endX < 0)return;
+        if(swiper.activeIndex === 0 && endX > 0)return;
+        $moveTable.css({
+        	// transform:'translate('+moveXpersent+'px,0)',
+        	left:moveXpersent,
+        	width:li_width,
+        });
+	}
+
+	function changeLeft(swiper){
+		var swiper = swiper || '';
+		var activeIndex = swiper.activeIndex;
+        var li_width = $this.children().eq(activeIndex).outerWidth();
+        //线的left位置
+		var li_left = $this.children().eq(activeIndex).position().left;
+
+		//li的margin left
+		var li_marginLeft = Number($this.children().eq(activeIndex).css('margin-left').replace(/[^0-9]+/g, ''));
+
+		var line_translate = li_left + li_marginLeft;
+
+    	$moveTable.css({
+    		width:li_width,
+        	left:line_translate
+        });
+	}
 </script>
-<!-- oncontextmenu="javascript:return false" -->
 </html>
